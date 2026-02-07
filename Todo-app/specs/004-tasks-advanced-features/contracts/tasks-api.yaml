@@ -1,0 +1,188 @@
+# API Contract: Tasks Advanced Features
+
+## Overview
+This document defines the API contracts for the extended task management system with advanced features including priority levels, tags, due dates, search, filtering, and sorting capabilities.
+
+## Base URL
+`/api/tasks`
+
+## Authentication
+All endpoints require a valid JWT token in the Authorization header:
+```
+Authorization: Bearer {jwt_token}
+```
+
+## Endpoints
+
+### 1. Create Task with Advanced Fields
+**POST** `/api/tasks`
+
+#### Request
+```json
+{
+  "title": "string (required, max 255 chars)",
+  "description": "string (optional, max 1000 chars)",
+  "priority": "string (optional, enum: low|medium|high, default: medium)",
+  "tags": "array of strings (optional, max 10 items, default: [])",
+  "due_date": "string (optional, ISO 8601 datetime format)"
+}
+```
+
+#### Response (201 Created)
+```json
+{
+  "id": 123,
+  "title": "string",
+  "description": "string",
+  "is_completed": false,
+  "priority": "low|medium|high",
+  "tags": ["string"],
+  "due_date": "2025-12-31T23:59:59Z",
+  "user_id": "string",
+  "created_at": "2025-12-28T10:00:00Z",
+  "updated_at": "2025-12-28T10:00:00Z"
+}
+```
+
+#### Error Responses
+- `400 Bad Request`: Invalid input data
+- `401 Unauthorized`: Invalid or missing JWT token
+- `422 Unprocessable Entity`: Validation errors
+
+---
+
+### 2. Get Tasks with Filtering, Search, and Sorting
+**GET** `/api/tasks`
+
+#### Query Parameters
+- `search` (optional): Search term to match in title or description
+- `priority` (optional): Filter by priority level (low|medium|high)
+- `status` (optional): Filter by completion status (completed|pending)
+- `sort` (optional): Sort field (created_at|due_date|priority|title, default: created_at)
+- `order` (optional): Sort order (asc|desc, default: desc)
+- `limit` (optional): Number of tasks to return (default: 20, max: 100)
+- `offset` (optional): Number of tasks to skip (for pagination)
+
+#### Response (200 OK)
+```json
+{
+  "tasks": [
+    {
+      "id": 123,
+      "title": "string",
+      "description": "string",
+      "is_completed": false,
+      "priority": "low|medium|high",
+      "tags": ["string"],
+      "due_date": "2025-12-31T23:59:59Z",
+      "user_id": "string",
+      "created_at": "2025-12-28T10:00:00Z",
+      "updated_at": "2025-12-28T10:00:00Z"
+    }
+  ],
+  "total": 150,
+  "limit": 20,
+  "offset": 0
+}
+```
+
+#### Error Responses
+- `401 Unauthorized`: Invalid or missing JWT token
+- `422 Unprocessable Entity`: Invalid query parameter values
+
+---
+
+### 3. Update Task
+**PUT** `/api/tasks/{task_id}`
+
+#### Path Parameters
+- `task_id` (required): ID of the task to update
+
+#### Request
+```json
+{
+  "title": "string (optional)",
+  "description": "string (optional)",
+  "is_completed": "boolean (optional)",
+  "priority": "string (optional, enum: low|medium|high)",
+  "tags": "array of strings (optional)",
+  "due_date": "string (optional, ISO 8601 datetime format)"
+}
+```
+
+#### Response (200 OK)
+```json
+{
+  "id": 123,
+  "title": "string",
+  "description": "string",
+  "is_completed": false,
+  "priority": "low|medium|high",
+  "tags": ["string"],
+  "due_date": "2025-12-31T23:59:59Z",
+  "user_id": "string",
+  "created_at": "2025-12-28T10:00:00Z",
+  "updated_at": "2025-12-28T11:00:00Z"
+}
+```
+
+#### Error Responses
+- `400 Bad Request`: Invalid input data
+- `401 Unauthorized`: Invalid or missing JWT token
+- `403 Forbidden`: User does not own the task
+- `404 Not Found`: Task does not exist
+- `422 Unprocessable Entity`: Validation errors
+
+---
+
+### 4. Delete Task
+**DELETE** `/api/tasks/{task_id}`
+
+#### Path Parameters
+- `task_id` (required): ID of the task to delete
+
+#### Response (204 No Content)
+
+#### Error Responses
+- `401 Unauthorized`: Invalid or missing JWT token
+- `403 Forbidden`: User does not own the task
+- `404 Not Found`: Task does not exist
+
+---
+
+## Data Validation
+
+### Priority Values
+- Allowed values: "low", "medium", "high"
+- Case-sensitive
+- Default: "medium"
+
+### Tags Validation
+- Array of strings
+- Maximum 10 tags per task
+- Each tag maximum 50 characters
+- Only alphanumeric characters, hyphens, and underscores allowed
+- Default: empty array []
+
+### Due Date Format
+- ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ
+- Can be null/undefined
+- Can be in past, present, or future
+- Timezone-aware
+
+### Search Functionality
+- Searches in both title and description fields
+- Case-insensitive matching
+- Supports partial matches
+
+### Sorting Options
+- `created_at`: Sort by creation date
+- `due_date`: Sort by due date (null values last)
+- `priority`: Sort by priority (high, medium, low)
+- `title`: Sort by title alphabetically
+- Default sort: `created_at` descending
+
+### Filtering Options
+- Priority filter: Show only tasks with specific priority
+- Status filter: Show only completed or pending tasks
+- Combined filters: Multiple filters can be applied together

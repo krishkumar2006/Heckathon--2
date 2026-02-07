@@ -1,0 +1,22 @@
+{
+  "preset": "ts-jest",
+  "testEnvironment": "node",
+  "roots": [
+    "<rootDir>/__tests__"
+  ],
+  "testMatch": [
+    "**/__tests__/**/*.(test|spec).(ts|tsx|js)"
+  ],
+  "collectCoverageFrom": [
+    "lib/**/*.{ts,tsx}",
+    "services/**/*.{ts,tsx}",
+    "!**/node_modules/**",
+    "!**/vendor/**"
+  ],
+  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/$1"
+  },
+  "transform": {
+    "^.+\\.(ts|tsx)$": "ts-jest"
+  }
+}
